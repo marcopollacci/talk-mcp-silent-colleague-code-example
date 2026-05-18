@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@better-auth/oauth-provider": "^1.6.11",
     "@modelcontextprotocol/sdk": "^1.0.0",
     "better-auth": "^1.6.11",
     "express": "^5.0.0",

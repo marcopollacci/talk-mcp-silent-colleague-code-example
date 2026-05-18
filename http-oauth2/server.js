@@ -2,12 +2,28 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { z } from "zod";
 import { betterAuth } from "better-auth";
-import { bearer } from "better-auth/plugins";
+import { bearer, jwt } from "better-auth/plugins";
+import { toNodeHandler } from "better-auth/node";
+import { memoryAdapter } from "better-auth/adapters/memory";
+import {
+  oauthProvider,
+  oauthProviderAuthServerMetadata,
+} from "@better-auth/oauth-provider";
 import express from "express";
 
+const BASE_URL = process.env.BETTER_AUTH_URL ?? "http://localhost:3000";
+
 const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-  plugins: [bearer()],
+  baseURL: BASE_URL,
+  secret: process.env.BETTER_AUTH_SECRET ?? "dev-secret-change-in-production",
+  database: memoryAdapter({}),
+  plugins: [
+    jwt(),
+    bearer(),
+    oauthProvider({
+      loginPage: `${BASE_URL}/api/auth/sign-in/social?provider=github`,
+    }),
+  ],
   socialProviders: {
     github: {
       clientId: process.env.GITHUB_ID,
@@ -35,12 +51,19 @@ const createServer = () => {
 };
 
 const app = express();
+app.use("/api/auth", toNodeHandler(auth));
 app.use(express.json());
 
+const wellKnownHandler = oauthProviderAuthServerMetadata(auth);
+app.get("/.well-known/oauth-authorization-server", async (req, res) => {
+  const webReq = new Request(new URL(req.url, BASE_URL).href);
+  const webRes = await wellKnownHandler(webReq);
+  webRes.headers.forEach((v, k) => res.set(k, v));
+  res.status(webRes.status).json(await webRes.json());
+});
+
 app.post("/mcp", async (req, res) => {
-  const session = await auth.api.getSession({
-    headers: req.headers,
-  });
+  const session = await auth.api.getSession({ headers: req.headers });
 
   if (!session?.user) {
     return res.status(401).json({ error: "unauthorized" });

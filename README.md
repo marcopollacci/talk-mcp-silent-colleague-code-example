@@ -62,7 +62,7 @@ The server listens on `http://localhost:3000/mcp`.
 
 ## http-oauth2
 
-Same as `http`, but every request is authenticated via [Better Auth](https://better-auth.com/) using a GitHub OAuth2 provider. Unauthenticated requests receive a `401` response before the MCP transport is ever touched.
+Same as `http`, but the server also acts as a full **OAuth2 authorization server** powered by [Better Auth](https://better-auth.com/) and the [`@better-auth/oauth-provider`](https://www.better-auth.com/docs/plugins/oauth-provider) plugin. GitHub is used as the social login provider behind it. MCP clients obtain a token via the standard OAuth2 flow and pass it as `Authorization: Bearer <token>`.
 
 ### Install & run
 
@@ -70,6 +70,7 @@ Same as `http`, but every request is authenticated via [Better Auth](https://bet
 cd http-oauth2
 pnpm install
 BETTER_AUTH_URL=http://localhost:3000 \
+BETTER_AUTH_SECRET=<random-secret> \
 GITHUB_ID=<your-github-client-id> \
 GITHUB_SECRET=<your-github-client-secret> \
 pnpm start
@@ -77,10 +78,20 @@ pnpm start
 
 The server listens on `http://localhost:3000/mcp`.
 
+### Endpoints
+
+| Path | Description |
+|---|---|
+| `/.well-known/oauth-authorization-server` | OAuth2 authorization server metadata (RFC 8414) |
+| `/api/auth/*` | Better Auth routes (sign-in, token exchange, …) |
+| `POST /mcp` | MCP endpoint — requires a valid Bearer token |
+
 ### How it works
 
-- `betterAuth` is initialized with the `bearer()` plugin, which reads the `Authorization: Bearer <token>` header.
-- On each `POST /mcp` request, `auth.api.getSession()` validates the token against the session store.
+- `betterAuth` is initialized with the `jwt()`, `bearer()`, and `oauthProvider()` plugins and an in-memory adapter.
+- `oauthProvider()` exposes `/.well-known/oauth-authorization-server` so MCP clients can auto-discover the authorization server.
+- The login page redirects users through GitHub OAuth via the `socialProviders.github` configuration.
+- On each `POST /mcp` request, `auth.api.getSession()` validates the Bearer token against the session store.
 - If no valid session is found, the request is rejected with `401` before any MCP processing occurs.
 - If authenticated, a fresh `McpServer` + `StreamableHTTPServerTransport` pair handles the request.
 
@@ -89,6 +100,7 @@ The server listens on `http://localhost:3000/mcp`.
 | Variable | Description |
 |---|---|
 | `BETTER_AUTH_URL` | Base URL of this server (default: `http://localhost:3000`) |
+| `BETTER_AUTH_SECRET` | Secret used to sign tokens (default: `dev-secret-change-in-production`) |
 | `GITHUB_ID` | GitHub OAuth App client ID |
 | `GITHUB_SECRET` | GitHub OAuth App client secret |
 
@@ -115,3 +127,4 @@ All three servers expose the same tool:
 | `zod` | Input schema validation |
 | `express` _(http, http-oauth2)_ | HTTP server |
 | `better-auth` _(http-oauth2 only)_ | OAuth2 / session authentication |
+| `@better-auth/oauth-provider` _(http-oauth2 only)_ | OAuth2 authorization server plugin for Better Auth |
