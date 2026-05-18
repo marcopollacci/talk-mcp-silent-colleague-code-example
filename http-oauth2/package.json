@@ -1,0 +1,19 @@
+{
+  "name": "http-oauth2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "better-auth": "^1.6.11",
+    "express": "^5.0.0",
+    "zod": "^3.0.0"
+  },
+  "type": "module"
+}
