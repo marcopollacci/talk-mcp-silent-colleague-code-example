@@ -2,7 +2,7 @@
 
 Code examples for the talk **"MCP: il collega silenzioso"**.
 
-Two minimal MCP servers that expose a single `greet` tool, implemented with the two main transport strategies.
+Three minimal MCP servers that expose a single `greet` tool, covering stdio, HTTP, and HTTP with OAuth2 authentication.
 
 ---
 
@@ -12,7 +12,9 @@ Two minimal MCP servers that expose a single `greet` tool, implemented with the 
 .
 ├── stdio/        # MCP server over stdio (for local/CLI integrations)
 │   └── server.js
-└── http/         # MCP server over Streamable HTTP (for remote integrations)
+├── http/         # MCP server over Streamable HTTP (stateless, no auth)
+│   └── server.js
+└── http-oauth2/  # MCP server over Streamable HTTP with OAuth2 via Better Auth
     └── server.js
 ```
 
@@ -58,9 +60,43 @@ The server listens on `http://localhost:3000/mcp`.
 
 ---
 
+## http-oauth2
+
+Same as `http`, but every request is authenticated via [Better Auth](https://better-auth.com/) using a GitHub OAuth2 provider. Unauthenticated requests receive a `401` response before the MCP transport is ever touched.
+
+### Install & run
+
+```bash
+cd http-oauth2
+pnpm install
+BETTER_AUTH_URL=http://localhost:3000 \
+GITHUB_ID=<your-github-client-id> \
+GITHUB_SECRET=<your-github-client-secret> \
+pnpm start
+```
+
+The server listens on `http://localhost:3000/mcp`.
+
+### How it works
+
+- `betterAuth` is initialized with the `bearer()` plugin, which reads the `Authorization: Bearer <token>` header.
+- On each `POST /mcp` request, `auth.api.getSession()` validates the token against the session store.
+- If no valid session is found, the request is rejected with `401` before any MCP processing occurs.
+- If authenticated, a fresh `McpServer` + `StreamableHTTPServerTransport` pair handles the request.
+
+### Environment variables
+
+| Variable | Description |
+|---|---|
+| `BETTER_AUTH_URL` | Base URL of this server (default: `http://localhost:3000`) |
+| `GITHUB_ID` | GitHub OAuth App client ID |
+| `GITHUB_SECRET` | GitHub OAuth App client secret |
+
+---
+
 ## The `greet` tool
 
-Both servers expose the same tool:
+All three servers expose the same tool:
 
 | Field | Value |
 |---|---|
@@ -77,4 +113,5 @@ Both servers expose the same tool:
 |---|---|
 | `@modelcontextprotocol/sdk` | MCP server SDK |
 | `zod` | Input schema validation |
-| `express` _(http only)_ | HTTP server |
+| `express` _(http, http-oauth2)_ | HTTP server |
+| `better-auth` _(http-oauth2 only)_ | OAuth2 / session authentication |
