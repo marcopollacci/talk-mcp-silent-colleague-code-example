@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <form
+      toolname="supportRequestTool"
+      tooldescription="Submit a request for support."
+      action="/submit"
+    >
+      <label for="firstName">First Name</label>
+      <input type="text" name="firstName" />
+
+      <label for="lastName">Last Name</label>
+      <input type="text" name="lastName" />
+
+      <select
+        name="select"
+        required
+        toolparamtitle="Support type"
+        toolparamdescription="Determines what team this request is routed to."
+      >
+        <option value="Customer happiness team">Return my purchase.</option>
+        <option value="Distribution team">Check where my package is.</option>
+        <option value="Website support team">Get help on the website.</option>
+      </select>
+
+      <button type="submit">Submit</button>
+    </form>
+    <script>
+      navigator.modelContext.registerTool({
+        name: "toggle_layer",
+        description:
+          'Control pizza layers (sauce, cheese). Use "add", "remove", or "toggle".',
+        inputSchema: {
+          type: "object",
+          properties: {
+            layer: { type: "string", enum: ["sauce-layer", "cheese-layer"] },
+            action: { type: "string", enum: ["add", "remove", "toggle"] },
+          },
+          required: ["layer"],
+        },
+        execute: ({ layer, action }) => {
+          toggleLayer(layer, action);
+          return `Performed ${action || "toggle"} on layer: ${layer}`;
+        },
+      });
+    </script>
+  </body>
+</html>
