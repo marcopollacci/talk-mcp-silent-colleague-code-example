@@ -1,0 +1,5 @@
+packages:
+  - shared
+  - stdio
+  - http
+  - http-oauth2

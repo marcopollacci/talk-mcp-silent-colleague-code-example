@@ -1,0 +1,171 @@
+<!doctype html>
+<!--
+  WebMCP — MCP inside the browser.
+
+  Instead of an agent scraping the UI, the page declares what it can do and
+  the agent calls it. Two ways to do that, both on this page:
+
+    1. imperative  — document.modelContext.registerTool({ ..., execute })
+    2. declarative — a <form> with toolname / tooldescription attributes
+
+  Status: W3C Community Group draft, origin trial in Chrome 149 → 156 and
+  Edge 150. Still experimental — re-check the numbers before quoting them.
+
+  To try it locally, no origin trial token needed:
+    chrome://flags/#enable-webmcp-testing
+
+  Early builds exposed this as navigator.modelContext; Chrome 150 deprecated
+  that alias in favour of document.modelContext.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebMCP demo — product catalog</title>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        max-width: 42rem;
+        margin: 3rem auto;
+        padding: 0 1rem;
+        line-height: 1.5;
+      }
+      fieldset {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin-block: 1.5rem;
+        padding: 1rem;
+      }
+      legend {
+        font-weight: 600;
+      }
+      input,
+      button {
+        font: inherit;
+        padding: 0.4rem 0.6rem;
+      }
+      li {
+        margin-block: 0.25rem;
+      }
+      #status {
+        color: #666;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Product catalog</h1>
+    <p id="status">Checking WebMCP support…</p>
+
+    <!--
+      Declarative mode: the form IS the tool.
+      `toolname` names it, `tooldescription` explains it, and the fields
+      become its input parameters. Existing HTML semantics, reused.
+    -->
+    <fieldset>
+      <legend>Declarative tool</legend>
+      <form toolname="search-products-form" tooldescription="Search the product catalog by keyword" action="/search">
+        <label for="query">Search</label>
+        <input
+          id="query"
+          name="query"
+          type="text"
+          toolparamdescription="Search term to filter products"
+        />
+        <button type="submit">Search</button>
+      </form>
+    </fieldset>
+
+    <fieldset>
+      <legend>Results</legend>
+      <ul id="results">
+        <li>Nothing searched yet.</li>
+      </ul>
+    </fieldset>
+
+    <script>
+      const CATALOG = [
+        { sku: "KB-01", name: "Mechanical keyboard", price: 129 },
+        { sku: "DK-02", name: "USB-C dock", price: 89 },
+        { sku: "MN-03", name: '27" monitor', price: 349 },
+        { sku: "MS-04", name: "Wireless mouse", price: 49 },
+      ];
+
+      // The app's own logic. Nothing MCP-specific here — this is what the
+      // page already does for its human users.
+      const api = {
+        search(query) {
+          const needle = String(query ?? "").toLowerCase();
+          return CATALOG.filter(
+            (product) =>
+              product.name.toLowerCase().includes(needle) ||
+              product.sku.toLowerCase().includes(needle),
+          );
+        },
+      };
+
+      function render(results) {
+        const list = document.querySelector("#results");
+        list.innerHTML = "";
+
+        if (results.length === 0) {
+          list.innerHTML = "<li>No products found.</li>";
+          return;
+        }
+
+        for (const product of results) {
+          const item = document.createElement("li");
+          item.textContent = `${product.name} — €${product.price} (${product.sku})`;
+          list.append(item);
+        }
+      }
+
+      document.querySelector("form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        render(api.search(new FormData(event.target).get("query")));
+      });
+
+      // Imperative mode: same shape as any MCP tool — name, description,
+      // inputSchema. The difference is `execute`: it runs in the browser,
+      // with access to app state, the DOM, cookies, the session. No backend
+      // involved.
+      async function registerTools() {
+        const status = document.querySelector("#status");
+
+        if (!("modelContext" in document)) {
+          status.textContent =
+            "document.modelContext is not available — enable chrome://flags/#enable-webmcp-testing in Chrome 149+.";
+          return;
+        }
+
+        await document.modelContext.registerTool({
+          name: "search-products",
+          description: "Search the product catalog by keyword",
+          inputSchema: {
+            type: "object",
+            properties: {
+              query: { type: "string", description: "Search term" },
+            },
+            required: ["query"],
+          },
+          // Tells the agent this tool changes nothing, so it is safe to call
+          // without asking the user first.
+          annotations: { readOnlyHint: true },
+          execute: async ({ query }) => {
+            const results = api.search(query);
+            render(results);
+
+            return {
+              content: [{ type: "text", text: JSON.stringify(results) }],
+            };
+          },
+        });
+
+        status.textContent =
+          "WebMCP ready — 2 tools registered (search-products, search-products-form).";
+      }
+
+      registerTools();
+    </script>
+  </body>
+</html>

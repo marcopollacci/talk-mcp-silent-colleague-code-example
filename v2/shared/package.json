@@ -1,0 +1,13 @@
+{
+  "name": "@talk/mcp-shared",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "mcp-server.js",
+  "exports": {
+    ".": "./mcp-server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0",
+    "zod": "^4.0.0"
+  }
+}

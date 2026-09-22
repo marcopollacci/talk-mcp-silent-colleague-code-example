@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "my-stdio-mcp-server": {
+      "command": "node",
+      "args": ["/path/to/talk-mcp-silent-colleague-code-example/v2/stdio/server.js"]
+    }
+  }
+}
