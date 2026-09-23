@@ -25,9 +25,6 @@ importers:
       express:
         specifier: ^5.0.0
         version: 5.2.1
-      zod:
-        specifier: ^4.0.0
-        version: 4.6.5
 
   http-oauth2:
     dependencies:
@@ -73,9 +70,6 @@ importers:
       '@talk/mcp-shared':
         specifier: workspace:*
         version: link:../shared
-      zod:
-        specifier: ^4.0.0
-        version: 4.6.5
 
 packages:
 

@@ -122,7 +122,13 @@
 
       document.querySelector("form").addEventListener("submit", (event) => {
         event.preventDefault();
-        render(api.search(new FormData(event.target).get("query")));
+        const results = api.search(new FormData(event.target).get("query"));
+        render(results);
+        if (event.agentInvoked) {
+          event.respondWith(Promise.resolve({
+            content: [{ type: "text", text: JSON.stringify(results) }],
+          }));
+        }
       });
 
       // Imperative mode: same shape as any MCP tool — name, description,

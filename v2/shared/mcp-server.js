@@ -16,8 +16,10 @@ const ORDERS = [
   { id: 3, customerId: "456", item: "27\" monitor", status: "pending" },
 ];
 
+const pendingOrders = () => ORDERS.filter((order) => order.status === "pending");
+
 const pendingOrdersFor = (customerId) =>
-  ORDERS.filter((order) => order.customerId === customerId);
+  pendingOrders().filter((order) => order.customerId === customerId);
 
 const formatOrder = (order) => `Order #${order.id} — ${order.item}`;
 
@@ -78,7 +80,7 @@ export function createServer() {
         {
           uri: uri.href,
           mimeType: "text/plain",
-          text: ORDERS.map(formatOrder).join("\n"),
+          text: pendingOrders().map(formatOrder).join("\n"),
         },
       ],
     }),

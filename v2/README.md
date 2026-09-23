@@ -88,7 +88,8 @@ Two things the slides leave out because a real client sends them for you:
 Two processes, because they are two roles:
 
 ```bash
-cp .env.example .env     # fill in GITHUB_ID / GITHUB_SECRET / BETTER_AUTH_SECRET
+cp http-oauth2/.env.example http-oauth2/.env
+# fill in GITHUB_ID / GITHUB_SECRET / BETTER_AUTH_SECRET in http-oauth2/.env
 pnpm start:auth          # http://localhost:3001 — authorization server (better-auth)
 pnpm start:oauth2        # http://localhost:3000/mcp — MCP resource server
 ```
@@ -121,7 +122,7 @@ Client registration note: the 2026-07-28 spec prefers **Client ID Metadata Docum
 ## webmcp
 
 ```bash
-pnpm start:webmcp        # serves webmcp/ on http://localhost:3000
+pnpm start:webmcp        # serves webmcp/ on http://localhost:8080
 ```
 
 Open it in Chrome 149+ with `chrome://flags/#enable-webmcp-testing` (no origin-trial token needed for local testing). The page registers the same tool twice, once per mode:
