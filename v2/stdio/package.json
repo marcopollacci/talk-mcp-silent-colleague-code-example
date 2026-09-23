@@ -1,0 +1,14 @@
+{
+  "name": "stdio",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "inspect": "npx --yes @modelcontextprotocol/inspector node server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0",
+    "@talk/mcp-shared": "workspace:*"
+  }
+}

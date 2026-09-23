@@ -2,6 +2,19 @@
 
 Code examples for the talk **"MCP: il collega silenzioso"**.
 
+Two generations of the same examples, side by side:
+
+| Folder | Spec | SDK |
+|---|---|---|
+| [`v2/`](./v2) | **2026-07-28** — stateless, OAuth 2.1 resource server, WebMCP | `@modelcontextprotocol/server@2` |
+| `stdio/`, `http/`, `http-oauth2/`, `webmcp/` | 2025 era | `@modelcontextprotocol/sdk@1` |
+
+**Start with [`v2/`](./v2)** — it is what the current version of the talk shows on screen. The folders below are kept as-is, as a reference for what the same code looked like before the v2 SDK.
+
+---
+
+## v1 (SDK v1)
+
 Three minimal MCP servers that expose a single `greet` tool, covering stdio, HTTP, and HTTP with OAuth2 authentication.
 
 ---

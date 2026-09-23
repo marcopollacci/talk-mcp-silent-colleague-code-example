@@ -1,0 +1,16 @@
+{
+  "name": "talk-mcp-v2",
+  "private": true,
+  "type": "module",
+  "description": "MCP examples for the 2026-07-28 spec (TypeScript SDK v2)",
+  "scripts": {
+    "test": "node --test http-oauth2/*.test.js webmcp/*.test.js",
+    "start:stdio": "pnpm --filter stdio start",
+    "start:http": "pnpm --filter http start",
+    "start:auth": "pnpm --filter http-oauth2 start:auth",
+    "start:oauth2": "pnpm --filter http-oauth2 start",
+    "start:webmcp": "npx --yes serve -l 8080 webmcp",
+    "inspect:stdio": "npx --yes @modelcontextprotocol/inspector node stdio/server.js",
+    "inspect:http": "npx --yes @modelcontextprotocol/inspector"
+  }
+}
